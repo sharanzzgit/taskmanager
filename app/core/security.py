@@ -28,3 +28,12 @@ def create_access_token(data):
 def verify_access_token(token):
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     return payload
+
+def refresh_token(data):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp":expire})
+
+    encoded_jwt = jwt.encode(to_encode,settings.SECRET_KEY,algorithm=settings.ALGORITHM)
+    return encoded_jwt

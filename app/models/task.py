@@ -22,4 +22,5 @@ class Tasks(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow, nullable=False)
     owner_id = Column(Integer, ForeignKey('users.id'))
+    is_deleted = Column(Boolean, default=False, nullable=False)
     author = relationship('Users', back_populates='tasks')

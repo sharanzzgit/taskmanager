@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
+from typing import Optional
 
 class UserBase(BaseModel):
     username: str 
@@ -14,3 +15,7 @@ class UserResponse(UserBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(UserBase):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
