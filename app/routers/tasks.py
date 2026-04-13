@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -9,13 +9,18 @@ from app.models.task import Tasks
 from app.models.user import Users
 from app.dependencies import get_current_user
 from sqlalchemy import or_, func
+from app.core.email import send_task_email
+from main import limiter
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
 @router.post("/", response_model=TaskResponse)
+@limiter.limit("10/minute")
 def create_task(
+    request: Request,
     task: TaskCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: Users = Depends(get_current_user),
 ):
@@ -31,6 +36,7 @@ def create_task(
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+    background_tasks.add_task(send_task_email, user.email, new_task.title)
     return new_task
 
 

@@ -9,7 +9,12 @@ class Settings(BaseSettings):
     APP_NAME: str = "TaskManager"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_SERVER: str
+    MAIL_PORT: int
+    REDIS_URL: str
     model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
