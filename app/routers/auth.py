@@ -7,7 +7,7 @@ from app.core.security import hash_password, verify_password, create_access_toke
 from app.models.user import Users
 from sqlalchemy import or_
 from jose import JWTError
-from main import limiter
+from app.core.limiter import limiter
 
 router = APIRouter(prefix="/auth",tags=["auth"])
 

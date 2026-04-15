@@ -10,7 +10,8 @@ from app.models.user import Users
 from app.dependencies import get_current_user
 from sqlalchemy import or_, func
 from app.core.email import send_task_email
-from main import limiter
+from app.core.cache import get_cache,set_cache
+from app.core.limiter import limiter
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -52,6 +53,12 @@ def get_tasks(
     due_today: bool = False,
     overdue: bool = False,
 ):
+    cache_key = f"tasks:{user.id}:{skip}:{limit}:{status}:{priority}:{search}:{due_today}:{overdue}"
+    
+    cached = get_cache(cache_key)
+    if cached:
+        return cached
+    
     query = db.query(Tasks).filter(Tasks.owner_id == user.id, Tasks.is_deleted == False)
 
     if status:
@@ -67,6 +74,8 @@ def get_tasks(
     if overdue:
         query = query.filter(func.date(Tasks.due_date) < date.today())
     tasks = query.offset(skip).limit(limit).all()
+    # Correct - Pydantic handles serialization properly
+    set_cache(cache_key, [TaskResponse.model_validate(task).model_dump(mode="json") for task in tasks])
     return tasks
 
 

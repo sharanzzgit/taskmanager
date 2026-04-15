@@ -2,13 +2,10 @@ from fastapi import FastAPI
 from app.core.database import Base, engine
 from app.models import *
 from app.routers import auth, tasks, users
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
-
-limiter = Limiter(key_func=get_remote_address)
+from slowapi import _rate_limit_exceeded_handler
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
