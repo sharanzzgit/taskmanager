@@ -10,7 +10,7 @@ from app.models.user import Users
 from app.dependencies import get_current_user
 from sqlalchemy import or_, func
 from app.core.email import send_task_email
-from app.core.cache import get_cache,set_cache
+from app.core.cache import get_cache, set_cache, invalidate_user_tasks_cache
 from app.core.limiter import limiter
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -37,6 +37,7 @@ def create_task(
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+    invalidate_user_tasks_cache(user.id)
     background_tasks.add_task(send_task_email, user.email, new_task.title)
     return new_task
 
@@ -54,11 +55,11 @@ def get_tasks(
     overdue: bool = False,
 ):
     cache_key = f"tasks:{user.id}:{skip}:{limit}:{status}:{priority}:{search}:{due_today}:{overdue}"
-    
+
     cached = get_cache(cache_key)
     if cached:
         return cached
-    
+
     query = db.query(Tasks).filter(Tasks.owner_id == user.id, Tasks.is_deleted == False)
 
     if status:
@@ -75,7 +76,10 @@ def get_tasks(
         query = query.filter(func.date(Tasks.due_date) < date.today())
     tasks = query.offset(skip).limit(limit).all()
     # Correct - Pydantic handles serialization properly
-    set_cache(cache_key, [TaskResponse.model_validate(task).model_dump(mode="json") for task in tasks])
+    set_cache(
+        cache_key,
+        [TaskResponse.model_validate(task).model_dump(mode="json") for task in tasks],
+    )
     return tasks
 
 
@@ -113,6 +117,7 @@ def update_task(
 
     db.commit()
     db.refresh(task)
+    invalidate_user_tasks_cache(user.id)
     return task
 
 
@@ -127,4 +132,5 @@ def delete_task(
         raise HTTPException(status_code=404, detail="Task not found")
     task.is_deleted = True
     db.commit()
+    invalidate_user_tasks_cache(user.id)
     return {"Message": "Task Deleted successfully"}
