@@ -116,7 +116,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /app || git clone https://github.com/sharanzzgit/taskmanager.git /app && cd /app
+            cd ~/app || git clone https://github.com/sharanzzgit/taskmanager.git ~/app && cd ~/app
             git pull origin main
             echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
             echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
@@ -134,4 +134,4 @@ jobs:
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:latest
-            docker-compose up -d
+            cd ~/app docker-compose up -d
