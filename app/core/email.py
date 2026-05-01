@@ -1,5 +1,6 @@
 from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
 from app.config import settings
+import os
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -9,7 +10,8 @@ conf = ConnectionConfig(
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True
+    USE_CREDENTIALS=True,
+    SUPRESS_SEND=os.getenv("TESTING","0") == "1"
 )
 
 async def send_task_email(email:str,task_title:str):
