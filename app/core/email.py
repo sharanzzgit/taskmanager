@@ -10,11 +10,13 @@ conf = ConnectionConfig(
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True,
-    SUPRESS_SEND=os.getenv("TESTING","0") == "1"
+    USE_CREDENTIALS=True
 )
 
 async def send_task_email(email:str,task_title:str):
+    if os.getenv("TESTING")=="1":
+        return
+    
     message = MessageSchema(
         subject="Task Created",
         recipients=[email],
