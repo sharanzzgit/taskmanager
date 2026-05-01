@@ -12,3 +12,8 @@ output "db_username"{
     description = "Database username"
     value = aws_db_instance.taskmanager.username
 }
+
+output "ec2_public_ip"{
+    description = "EC2 public IP"
+    value = aws_instance.taskmanager.public_ip
+}

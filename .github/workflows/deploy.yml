@@ -1,4 +1,4 @@
-name: Run Migrations
+name: Build and Deploy
 
 on:
   push:
@@ -6,9 +6,71 @@ on:
       - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALGORITHM: HS256
+          ACCESS_TOKEN_EXPIRE_MINUTES: 30
+          REFRESH_TOKEN_EXPIRE_DAYS: 7
+          APP_NAME: TaskManager
+          APP_VERSION: 1.0.0
+          DEBUG: False
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT: 587
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: pytest -v
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
+      - name: Buid and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true 
+          tags: ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:latest
+        
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME}}/taskmanager-frontend:latest
+
+
   migrate:
     runs-on: ubuntu-latest
-  
+    needs: build-and-push
     steps:
       - name: Checkout-code
         uses: actions/checkout@v3
@@ -41,3 +103,34 @@ jobs:
           REDIS_URL: ${{ secrets.REDIS_URL}}
         run: |
           alembic upgrade head
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: migrate
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /app || git clone https://github.com/sharanzzgit/taskmanager.git /app && cd /app
+            git pull origin main
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "ALGORITHM=HS256" >> .env
+            echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+            echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
+            echo "APP_NAME=TaskManager" >> .env
+            echo "APP_VERSION=1.0.0" >> .env
+            echo "DEBUG=False" >> .env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+            echo "MAIL_SERVER=smtp.gmail.com" >> .env
+            echo "MAIL_PORT=587" >> .env
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+            docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:latest
+            docker-compose up -d
