@@ -5,6 +5,7 @@ from app.core.database import get_db, Base
 from app.main import app
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, patch
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
 
@@ -43,3 +44,8 @@ def auth_token(client):
         "password": "test1234"
     })
     return response.json()["access_token"]
+
+@pytest.fixture(autouse=True)
+def mock_email():
+    with patch("app.core.email.send_task_email", new_callable=AsyncMock) as mock:
+        yield mock
