@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from app.config import settings
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -19,7 +20,7 @@ app.include_router(users.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_origins=settings.ALLOWED_ORIGINS.split(","),  # Vite's default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

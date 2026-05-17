@@ -16,5 +16,6 @@ class Settings(BaseSettings):
     MAIL_PORT: int
     REDIS_URL: str
     model_config = SettingsConfigDict(env_file=".env")
+    ALLOWED_ORIGINS: str = "http://localhost:5173"
 
 settings = Settings()
