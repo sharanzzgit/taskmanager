@@ -39,6 +39,7 @@ jobs:
           MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
           MAIL_PORT: 587
           REDIS_URL: ${{ secrets.REDIS_URL }}
+          ALLOWED_ORIGINS: "http://localhost:5173" 
         run: pytest -v
 
   build-and-push:
@@ -104,6 +105,7 @@ jobs:
           MAIL_SERVER: smtp.gmail.com
           MAIL_PORT: 587
           REDIS_URL: ${{ secrets.REDIS_URL}}
+          ALLOWED_ORIGINS: "http://localhost:5173" 
         run: |
           alembic upgrade head
   
