@@ -136,4 +136,5 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:latest
-            docker-compose up -d --force-recreate --no-build
+            docker-compose down
+            docker-compose up -d
