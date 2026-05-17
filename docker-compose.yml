@@ -11,7 +11,7 @@ services:
       - taskmanager-network
   
   frontend:
-    image: sharanzzzdocker/taskmanager-backend:latest
+    image: sharanzzzdocker/taskmanager-frontend:latest
     ports: 
       - "80:80"
     depends_on:
