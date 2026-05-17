@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   backend:
-    image: sharanzzgit/taskmanager-backend:latest
+    image: sharanzzzdocker/taskmanager-backend:latest
     ports:
       - "8000:8000"
     env_file:
@@ -11,7 +11,7 @@ services:
       - taskmanager-network
   
   frontend:
-    image: sharanzzgit/taskmanager-backend:latest
+    image: sharanzzzdocker/taskmanager-backend:latest
     ports: 
       - "80:80"
     depends_on:

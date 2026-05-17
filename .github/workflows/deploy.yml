@@ -133,6 +133,7 @@ jobs:
             echo "MAIL_SERVER=smtp.gmail.com" >> ~/app/.env
             echo "MAIL_PORT=587" >> ~/app/.env
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> ~/app/.env
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:latest
-            docker-compose up -d
+            docker-compose up -d --force-recreate --no-build
