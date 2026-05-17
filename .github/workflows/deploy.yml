@@ -67,6 +67,8 @@ jobs:
           context: ./frontend
           push: true
           tags: ${{ secrets.DOCKER_USERNAME}}/taskmanager-frontend:latest
+          build-args: |
+            VITE_API_URL=http://13.233.55.106:8000
 
 
   migrate:
