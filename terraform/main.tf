@@ -85,3 +85,12 @@ resource "aws_instance" "taskmanager" {
     Name = "taskmanager-ec2"
   }
 }
+
+resource "aws_eip" "taskmanager" {
+  instance = aws_instance.taskmanager.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "taskmanager-eip"
+  }
+}

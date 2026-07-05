@@ -17,3 +17,8 @@ output "ec2_public_ip"{
     description = "EC2 public IP"
     value = aws_instance.taskmanager.public_ip
 }
+
+output "elastic_ip" {
+  description = "Static Elastic IP"
+  value       = aws_eip.taskmanager.public_ip
+}
