@@ -1,27 +1,24 @@
-from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
-from app.config import settings
+import boto3
+import json
 import os
 
-conf = ConnectionConfig(
-    MAIL_USERNAME=settings.MAIL_USERNAME,
-    MAIL_PASSWORD=settings.MAIL_PASSWORD,
-    MAIL_PORT=settings.MAIL_PORT,
-    MAIL_FROM=settings.MAIL_FROM,
-    MAIL_SERVER=settings.MAIL_SERVER,
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True
+sqs = boto3.client(
+    'sqs',
+    region_name='ap-south-1',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
 )
 
-async def send_task_email(email:str,task_title:str):
-    if os.getenv("TESTING")=="1":
+QUEUE_URL = os.getenv('SQS_QUEUE_URL')
+
+async def send_task_email(email: str, task_title: str):
+    if os.getenv("TESTING") == "1":
         return
     
-    message = MessageSchema(
-        subject="Task Created",
-        recipients=[email],
-        body=f"Your task {task_title} has been created successfully.",
-        subtype="plain"
+    sqs.send_message(
+        QueueUrl=QUEUE_URL,
+        MessageBody=json.dumps({
+            "email": email,
+            "task_title": task_title
+        })
     )
-    fm = FastMail(conf)
-    await fm.send_message(message)

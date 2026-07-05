@@ -17,5 +17,8 @@ class Settings(BaseSettings):
     REDIS_URL: str
     model_config = SettingsConfigDict(env_file=".env")
     ALLOWED_ORIGINS: str = "http://localhost:5173"
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    SQS_QUEUE_URL: str
 
 settings = Settings()

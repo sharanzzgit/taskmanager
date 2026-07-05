@@ -7,9 +7,12 @@ from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from app.config import settings
+import os
+
+if os.getenv("TESTING") != "1":
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-Base.metadata.create_all(bind=engine)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
